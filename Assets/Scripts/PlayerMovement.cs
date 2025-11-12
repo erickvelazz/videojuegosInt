@@ -1,61 +1,84 @@
 using UnityEngine;
-using UnityEngine.InputSystem; // Asegúrate de tener esta línea
+using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController))]
 public class PlayerMovement : MonoBehaviour
 {
     public float moveSpeed = 5.0f;
-    public float gravity = -9.81f;
-    public float rotationSpeed = 10f; // Velocidad para girar al personaje
+    public float gravity = -25f; // ¡Asegúrate de que este valor sea alto!
+    public float rotationSpeed = 10f;
+    public float jumpHeight = 1.8f; // ¡Asegúrate de que este valor sea más bajo!
+    public Animator animator;
 
     private CharacterController controller;
-    private Vector3 velocity;
+    private Vector3 velocity; 
     private Vector2 moveInput;
+    private bool isGrounded; // ¡NUEVO! Para guardar el estado
 
     void Start()
     {
         controller = GetComponent<CharacterController>();
+        if (animator == null)
+        {
+            animator = GetComponentInChildren<Animator>();
+        }
     }
 
-    // Esta función la llama tu "PlayerInput"
+    // Esta función lee A/D
     public void OnMove(InputValue value)
     {
         moveInput = value.Get<Vector2>();
     }
 
+    // Esta función lee el botón de Salto
+    public void OnJump(InputValue value)
+    {
+        // Solo saltamos si el botón fue presionado Y estamos en el suelo
+        if (value.isPressed && isGrounded)
+        {
+            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+
+            if (animator != null)
+            {
+                animator.SetTrigger("Jump"); // Llama al Trigger "Jump"
+            }
+        }
+    }
+
     void Update()
     {
-        // --- 1. Calcular la Dirección del Movimiento (EL GRAN CAMBIO) ---
-        
-        // Esta es la nueva línea clave. 
-        // Usamos los ejes del *mundo*, no los del personaje.
-        // moveInput.x (A/D) controla el eje X del mundo.
-        // moveInput.y (W/S) controla el eje Z del mundo.
-        Vector3 moveDirection = new Vector3(moveInput.x, 0, moveInput.y);
+        // --- 1. CHEQUEO DE SUELO ---
+        // Hacemos esto primero y guardamos el estado
+        isGrounded = controller.isGrounded;
 
-        // Aplicamos el movimiento
-        controller.Move(moveDirection * moveSpeed * Time.deltaTime);
-
-        // --- 2. Rotar el Personaje ---
-        
-        // Si el jugador se está moviendo (la dirección no es cero)
-        if (moveDirection != Vector3.zero)
-        {
-            // Calculamos la rotación que necesitamos para "mirar" en esa dirección
-            Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
-            
-            // Rotamos suavemente al personaje hacia esa dirección
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
-        }
-
-        // --- 3. Simulación de Gravedad (Igual que antes) ---
-        
-        if (controller.isGrounded && velocity.y < 0)
+        if (isGrounded && velocity.y < 0)
         {
             velocity.y = -2f; 
         }
 
-        velocity.y += gravity * Time.deltaTime;
-        controller.Move(velocity * Time.deltaTime);
+        // --- 2. MOVIMIENTO HORIZONTAL ---
+        Vector3 moveDirection = new Vector3(moveInput.x, 0, 0); 
+        controller.Move(moveDirection * moveSpeed * Time.deltaTime);
+
+        // --- 3. ROTACIÓN ---
+        if (moveDirection != Vector3.zero)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+        }
+        
+        // --- 4. GRAVEDAD Y SALTO ---
+        // Aplicamos gravedad (o la fuerza de salto)
+        velocity.y += gravity * Time.deltaTime; 
+        controller.Move(velocity * Time.deltaTime); 
+
+        // --- 5. ACTUALIZAR ANIMATOR ---
+        // ¡LÍNEAS MÁS IMPORTANTES!
+        // Le decimos al Animator CADA FOTOGRAMA si estamos en el suelo o no.
+        if (animator != null)
+        {
+            animator.SetBool("isGrounded", isGrounded);
+            animator.SetFloat("MovementSpeed", moveDirection.magnitude);
+        }
     }
 }
