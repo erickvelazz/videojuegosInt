@@ -31,4 +31,5 @@ MemoryCaptures/
 sysinfo.txt
 
 # Other files
+._*
 *.DS_Store
