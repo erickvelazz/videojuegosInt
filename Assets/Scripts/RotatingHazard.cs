@@ -7,7 +7,7 @@ public class RotatingHazard : MonoBehaviour
 
 
     [Header("Movimiento vertical")]
-    public float moveAmplitude = 1f; /
+    public float moveAmplitude = 1f; 
     public float moveSpeed = 1f;     
 
     private Vector3 startPos;
