@@ -3,18 +3,18 @@ using UnityEngine;
 public class SpikesTrap : MonoBehaviour
 {
     [Header("Movimiento vertical (local)")]
-    public float raiseHeight = 1.2f;      // cuánto suben los picos en Y
-    public float raiseSpeed  = 2f;        // velocidad al subir  (más lento)
-    public float lowerSpeed  = 4f;        // velocidad al bajar  (más rápido)
+    public float raiseHeight = 1.2f;     
+    public float raiseSpeed  = 2f;        
+    public float lowerSpeed  = 4f;        
 
     [Header("Tiempos (variación aleatoria)")]
-    public float minTimeDown = 0.5f;      // tiempo mínimo ocultos
-    public float maxTimeDown = 1.5f;      // tiempo máximo ocultos
-    public float minTimeUp   = 0.3f;      // tiempo mínimo arriba
-    public float maxTimeUp   = 1.0f;      // tiempo máximo arriba
+    public float minTimeDown = 0.5f;      
+    public float maxTimeDown = 1.5f;      
+    public float minTimeUp   = 0.3f;      
+    public float maxTimeUp   = 1.0f;      
 
     [Header("Daño al jugador")]
-    public int damageAmount = 1;          // cuánta vida quita
+    public int damageAmount = 1;          
 
     private Vector3 downPos;
     private Vector3 upPos;
@@ -24,22 +24,20 @@ public class SpikesTrap : MonoBehaviour
 
     private enum State
     {
-        Down,       // ocultos
-        GoingUp,    // subiendo
-        Up,         // arriba
-        GoingDown   // bajando
+        Down,       
+        GoingUp,    
+        Up,         
+        GoingDown   
     }
 
     private void Start()
     {
-        // Usamos la posición local de los picos como "abajo"
         downPos = transform.localPosition;
         upPos   = downPos + Vector3.up * raiseHeight;
 
         state = State.Down;
         stateTimer = Random.Range(minTimeDown, maxTimeDown);
 
-        // Aseguramos que tenga un collider tipo trigger
         Collider col = GetComponent<Collider>();
         if (col != null)
         {
@@ -103,11 +101,9 @@ public class SpikesTrap : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        // Solo nos interesa el jugador
         if (!other.CompareTag("Player"))
             return;
 
-        // Solo hacemos daño cuando los picos están arriba o subiendo
         if (state == State.GoingUp || state == State.Up)
         {
             PlayerHealth health = other.GetComponent<PlayerHealth>();

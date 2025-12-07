@@ -6,10 +6,9 @@ public class EnemyStompOrDamage : MonoBehaviour
     public int damageAmount = 1;
 
     [Header("Detección de stomp")]
-    public float bodyOffset = 0.1f;      // margen sobre la Y del enemigo
-    public float minFallSpeed = -0.1f;   // basta con que vaya hacia abajo
+    public float bodyOffset = 0.1f;      
+    public float minFallSpeed = -0.1f;   
 
-    // Si tu vida máxima es 3, ponlo aquí
     public int maxPlayerHealth = 3;
 
     private bool isDead = false;
@@ -42,7 +41,6 @@ public class EnemyStompOrDamage : MonoBehaviour
         {
             Debug.Log("[Enemy] STOMP: matando enemigo");
 
-            // 🔥 Reembolso de la vida que pudo haberse descontado
             health.currentHealth = Mathf.Min(
                 health.currentHealth + damageAmount,
                 maxPlayerHealth

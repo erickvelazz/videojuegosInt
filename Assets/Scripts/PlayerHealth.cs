@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement; 
-using System.Collections; // Necesario para usar Coroutines
+using System.Collections; 
 
 public class PlayerHealth : MonoBehaviour
 {
@@ -10,10 +10,13 @@ public class PlayerHealth : MonoBehaviour
     [Header("Invulnerabilidad")]
     public float invulnerabilityDuration = 0.5f; 
     private bool isInvulnerable = false; 
+    
     void Start()
         {
         currentHealth = 3; 
         Debug.Log("Juego iniciado. Vidas: " + currentHealth);
+        if(UIManager.Instance != null)
+            UIManager.Instance.UpdateLives(currentHealth);
     }
 
     public void TakeDamage(int amount)
@@ -27,6 +30,9 @@ public class PlayerHealth : MonoBehaviour
         
         currentHealth -= amount;
         Debug.Log("Jugador golpeado. Vidas restantes: " + currentHealth);
+
+        if(UIManager.Instance != null) 
+            UIManager.Instance.UpdateLives(currentHealth);
 
         if (currentHealth <= 0)
         {

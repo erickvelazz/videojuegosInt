@@ -16,67 +16,83 @@ public class BossFinalController : MonoBehaviour
     public float maxTimeBetweenShots = 4f;
     private float shotTimer;
 
-    [Header("--- MOVIMIENTO (Idéntico a EnemyPatrol) ---")]
-    public float patrolSpeed = 3f;
+    [Header("--- COMPORTAMIENTO (SALTO) ---")]
+    public float jumpHeight = 2.0f;
+    public float gravity = -9.81f;
+    public float minTimeBetweenJumps = 3f;
+    public float maxTimeBetweenJumps = 6f;
+    private float jumpTimer;
+    
+    private Vector3 velocity;
+
+    [Header("--- VISUAL ---")]
     public Animator animator; 
     public Transform modelVisual; 
     
     private CharacterController controller;
-    private int direction = 1; 
-    private Vector3 gravityVector = new Vector3(0, -9.81f, 0); 
-
     public GateController gateToOpen;
+    private Transform playerTransform; 
     
     void Start()
     {
         currentLives = maxLives;
         controller = GetComponent<CharacterController>();
         
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null) playerTransform = player.transform;
+        
         shotTimer = Random.Range(minTimeBetweenShots, maxTimeBetweenShots);
+        jumpTimer = Random.Range(minTimeBetweenJumps, maxTimeBetweenJumps);
 
         if (animator == null) animator = GetComponentInChildren<Animator>();
-        if (animator != null) animator.SetFloat("MovementSpeed", patrolSpeed);
-
-        // Asegurar orientación inicial correcta
-        FlipModel();
+        if (animator != null) animator.SetFloat("MovementSpeed", 0f);
     }
 
     void Update()
     {
-        // 1. MOVIMIENTO (Copiado exacto de tu EnemyPatrol)
-        Vector3 move = new Vector3(patrolSpeed * direction, 0, 0);
-
-        if (controller.isGrounded)
+        bool isGrounded = controller.isGrounded;
+        if (isGrounded && velocity.y < 0)
         {
-             gravityVector.y = -1f; 
+            velocity.y = -2f; 
         }
 
-        controller.Move((move * Time.deltaTime) + (gravityVector * Time.deltaTime));
+        jumpTimer -= Time.deltaTime;
+        if (jumpTimer <= 0 && isGrounded)
+        {
+            PerformJump();
+            jumpTimer = Random.Range(minTimeBetweenJumps, maxTimeBetweenJumps);
+        }
 
-        // 2. DISPARO
+        velocity.y += gravity * Time.deltaTime;
+        
+        controller.Move(velocity * Time.deltaTime);
+
+        FacePlayer();
+
         HandleShooting();
     }
 
-    // --- LÓGICA DE GIRO (Copiada exacta de tu EnemyPatrol) ---
-    void OnControllerColliderHit(ControllerColliderHit hit)
+    void PerformJump()
     {
-        if (hit.gameObject.CompareTag("WallBoundary"))
-        {
-            direction *= -1;
-            FlipModel();
-        }
+        velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
     }
 
-    void FlipModel()
+    void FacePlayer()
     {
-        if (modelVisual != null)
+        if (playerTransform != null && modelVisual != null)
         {
-            // Usamos 0 y 180 tal como pediste en el ejemplo
-            float targetRotationY = (direction == 1) ? 0f : 180f;
-            modelVisual.localRotation = Quaternion.Euler(0, targetRotationY, 0);
+            Vector3 directionToPlayer = playerTransform.position - transform.position;
+            
+            if (directionToPlayer.x > 0)
+            {
+                modelVisual.localRotation = Quaternion.Euler(0, 0f, 0); 
+            }
+            else
+            {
+                modelVisual.localRotation = Quaternion.Euler(0, 180f, 0);
+            }
         }
     }
-    // -----------------------------------------------------------
 
     void HandleShooting()
     {
@@ -95,20 +111,16 @@ public class BossFinalController : MonoBehaviour
         {
             GameObject ball = Instantiate(projectilePrefab, firePoint.position, firePoint.rotation);
             
-            // *** ESTO EVITA QUE SALTE ***
-            // Le dice al motor de físicas: "Ignora el choque entre YO (el jefe) y ESTA BOLA"
             if (ball.GetComponent<Collider>() != null)
             {
                 Physics.IgnoreCollision(controller, ball.GetComponent<Collider>());
             }
 
-            // Disparar
             Rigidbody rb = ball.GetComponent<Rigidbody>();
             if (rb != null)
             {
-                // Dispara hacia donde apunta el firePoint (o hacia el frente según la dirección)
-                Vector3 shootDir = new Vector3(direction, 0.2f, 0).normalized; 
-                rb.AddForce(shootDir * 10f, ForceMode.Impulse); 
+                Vector3 shootDir = modelVisual.forward + new Vector3(0, 0.2f, 0); 
+                rb.AddForce(shootDir.normalized * 10f, ForceMode.Impulse); 
             }
         }
     }
@@ -122,14 +134,10 @@ public class BossFinalController : MonoBehaviour
 
             if (yDifference > headHitThreshold)
             {
-                // Jugador salta encima: Daño al jefe
                 TakeDamage(); 
-                
-                // (Opcional) Aquí podrías empujar al jugador hacia arriba si tienes acceso a su script
             }
             else
             {
-                // Choque de frente: Daño al jugador
                 PlayerHealth playerHealth = other.gameObject.GetComponent<PlayerHealth>();
                 if (playerHealth != null)
                 {
@@ -153,14 +161,14 @@ public class BossFinalController : MonoBehaviour
         else
         {
             StartCoroutine(InvulnerabilityRoutine());
-            if(animator) animator.SetTrigger("Hit"); // Si tienes animación de dolor
+            if(animator) animator.SetTrigger("Hit"); 
         }
     }
 
     IEnumerator InvulnerabilityRoutine()
     {
         isInvulnerable = true;
-        yield return new WaitForSeconds(1.0f); // 1 segundo invulnerable
+        yield return new WaitForSeconds(1.0f); 
         isInvulnerable = false;
     }
 
@@ -168,7 +176,6 @@ public class BossFinalController : MonoBehaviour
     {
         Debug.Log("¡Jefe Derrotado!");
         
-        // NUEVO: Avisar a la puerta que se abra
         if (gateToOpen != null)
         {
             gateToOpen.OpenGate();

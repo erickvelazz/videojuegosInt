@@ -31,25 +31,21 @@ public class MovingDoorHazard : MonoBehaviour
 
     void Start()
     {
-        // Calculamos posiciones de extremos según la posición inicial
         Vector3 startPos = transform.position;
         bottomPos = startPos + Vector3.up * bottomOffset;
         topPos    = startPos + Vector3.up * topOffset;
 
-        // Colocamos la puerta abajo al inicio
         transform.position = bottomPos;
         goingUp = true;
         targetPos = topPos;
         PickNewSpeed();
 
-        // Aseguramos que el collider sea trigger (para no empujar al jugador)
         BoxCollider col = GetComponent<BoxCollider>();
         col.isTrigger = true;
     }
 
     void Update()
     {
-        // Si está en pausa en un extremo
         if (isWaiting)
         {
             waitTimer -= Time.deltaTime;
@@ -59,21 +55,17 @@ public class MovingDoorHazard : MonoBehaviour
             isWaiting = false;
         }
 
-        // Movimiento hacia el objetivo actual
         transform.position = Vector3.MoveTowards(
             transform.position,
             targetPos,
             currentSpeed * Time.deltaTime
         );
 
-        // ¿Llegó al extremo?
         if (Vector3.Distance(transform.position, targetPos) < 0.01f)
         {
-            // Cambiar dirección
             goingUp = !goingUp;
             targetPos = goingUp ? topPos : bottomPos;
 
-            // Nueva velocidad y pausa aleatoria
             PickNewSpeed();
             waitTimer = Random.Range(minPauseTime, maxPauseTime);
             isWaiting = waitTimer > 0f;
@@ -83,18 +75,16 @@ public class MovingDoorHazard : MonoBehaviour
     void PickNewSpeed()
     {
         if (goingUp)
-            currentSpeed = Random.Range(minUpSpeed, maxUpSpeed);   // lento
+            currentSpeed = Random.Range(minUpSpeed, maxUpSpeed);   
         else
-            currentSpeed = Random.Range(minDownSpeed, maxDownSpeed); // rápido
+            currentSpeed = Random.Range(minDownSpeed, maxDownSpeed); 
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        // Si no es el jugador, ignorar
         if (!other.CompareTag("Player"))
             return;
 
-        // Tu PlayerHealth ya gestiona invulnerabilidad y reinicio
         PlayerHealth health = other.GetComponent<PlayerHealth>();
         if (health != null)
         {

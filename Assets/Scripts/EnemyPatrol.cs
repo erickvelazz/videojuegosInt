@@ -52,26 +52,18 @@ public class EnemyPatrol : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            // 1. Calculamos la diferencia de altura
-            // Asumiendo que el pivote de ambos (Player y Enemy) está en los pies.
             float yDifference = other.transform.position.y - transform.position.y;
 
-            // 2. Definimos un umbral. 
-            // Si el enemigo mide 2 unidades de alto, su cabeza está aprox en 1.6 - 2.0.
-            // Si los pies del jugador están por encima de 1.5f, consideramos que es un salto en la cabeza.
             float headHitThreshold = 1.2f; 
 
             if (yDifference > headHitThreshold)
             {
-                // EL JUGADOR GANA: Saltó sobre la cabeza
                 Debug.Log("Golpe en la cabeza detectado");
                 Die();
 
-                // Opcional: Aquí podrías añadir un pequeño "rebote" al jugador si tienes acceso a su script de movimiento.
             }
             else
             {
-                // EL ENEMIGO GANA: Choque lateral o frontal
                 PlayerHealth playerHealth = other.gameObject.GetComponent<PlayerHealth>();
                 if (playerHealth != null)
                 {
