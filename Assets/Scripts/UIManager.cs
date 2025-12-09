@@ -17,7 +17,7 @@ public class UIManager : MonoBehaviour
 
     [Header("--- MONEDAS ---")]
     public TextMeshProUGUI coinCountText;
-    private int totalCoins = 0;
+    public int totalCoins = 0;
 
     void Awake()
     {
