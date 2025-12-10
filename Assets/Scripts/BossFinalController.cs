@@ -33,6 +33,14 @@ public class BossFinalController : MonoBehaviour
     public GateController gateToOpen;
     private Transform playerTransform; 
     
+    [Header("--- ATAQUE ESPECIAL (CARGA) ---")]
+    [SerializeField] private float chargeDuration = 1.5f; // Tiempo que tarda en cargar el ataque
+    [SerializeField] private float chargeSpeed = 15f; // Velocidad del movimiento de carga
+    [SerializeField] private float chargeCooldown = 8f; // Tiempo entre ataques de carga
+    private float currentChargeCooldown;
+    private bool isCharging = false;
+    private bool isTelegraphing = false; // Indica si está mostrando la animación/efecto de carga
+    
     void Start()
     {
         currentLives = maxLives;
@@ -46,10 +54,26 @@ public class BossFinalController : MonoBehaviour
 
         if (animator == null) animator = GetComponentInChildren<Animator>();
         if (animator != null) animator.SetFloat("MovementSpeed", 0f);
+
+        currentChargeCooldown = chargeCooldown; // Inicializar cooldown
     }
 
     void Update()
     {
+        // Si está en medio de un ataque especial (carga), no ejecutar movimiento normal/salto
+        if (isTelegraphing || isCharging)
+        {
+            return;
+        }
+
+        // Reducir Cooldown del Ataque de Carga
+        currentChargeCooldown -= Time.deltaTime;
+        if (currentChargeCooldown <= 0)
+        {
+            StartCoroutine(ChargeAttackSequence());
+            currentChargeCooldown = chargeCooldown; // Reiniciar Cooldown
+            return; // Salir de Update para no procesar movimiento en este frame
+        }
         bool isGrounded = controller.isGrounded;
         if (isGrounded && velocity.y < 0)
         {
@@ -153,7 +177,7 @@ public class BossFinalController : MonoBehaviour
 
         currentLives--;
         Debug.Log("Jefe herido. Vidas restantes: " + currentLives);
-
+        
         if (currentLives <= 0)
         {
             Die();
@@ -184,6 +208,60 @@ public class BossFinalController : MonoBehaviour
         controller.enabled = false;
         if (animator != null) animator.SetFloat("MovementSpeed", 0f);
         
+    
         Destroy(gameObject, 0.5f);
+    }
+
+    private IEnumerator ChargeAttackSequence()
+    {
+        // 1. Telegrafía (Advertencia)
+        isTelegraphing = true;
+        // Opcional: Cambiar color o animar para advertir
+        if (modelVisual != null) 
+        {
+            // Pequeña sacudida o cambio visual podría ir aquí
+            Debug.Log("¡Jefe preparando carga!");
+        }
+
+        yield return new WaitForSeconds(chargeDuration); 
+
+        // 2. Carga Rápida
+        isTelegraphing = false;
+        isCharging = true;
+
+        float direction = 1f;
+        // Cargar hacia donde está mirando el modelo visual (que mira al player)
+        // Check localRotationY mainly.
+        // Si modelVisual.localRotation.y es 180 (aprox), mira a izquierda (-1)
+        // Si es 0, mira a derecha (1)
+        if (Mathf.Abs(modelVisual.localEulerAngles.y - 180f) < 10f) 
+        {
+             direction = -1f;
+        }
+        else
+        {
+             direction = 1f;
+        }
+
+        // Aplicar movimiento continuo durante la carga
+        float chargeTime = 0.5f;
+        float elapsed = 0f;
+
+        while(elapsed < chargeTime)
+        {
+            if(controller.enabled)
+            {
+                 // Mover horizontalmente rápido, manteniendo gravedad o Y actual
+                 // Para CharacterController simple:
+                 Vector3 chargeMove = new Vector3(direction * chargeSpeed, velocity.y, 0);
+                 controller.Move(chargeMove * Time.deltaTime);
+            }
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        // 3. Recuperación
+        isCharging = false;
+        velocity.x = 0; // Detener impulso horizontal
     }
 }
