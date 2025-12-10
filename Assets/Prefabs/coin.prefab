@@ -18,7 +18,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d2a80395f42c341f1bc8b87521bcd52e, type: 3}
       propertyPath: m_LocalScale.z
-      value: 3
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d2a80395f42c341f1bc8b87521bcd52e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -26,7 +26,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d2a80395f42c341f1bc8b87521bcd52e, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 2.4
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d2a80395f42c341f1bc8b87521bcd52e, type: 3}
       propertyPath: m_LocalPosition.z
@@ -60,6 +60,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: d2a80395f42c341f1bc8b87521bcd52e, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: b46c5877ab9ec433088c4e7d0e11478b, type: 2}
     - target: {fileID: 919132149155446097, guid: d2a80395f42c341f1bc8b87521bcd52e, type: 3}
       propertyPath: m_Name
       value: coin
@@ -113,4 +117,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6eebedec0284c4c408d634e01e29130f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CoinCollectible
-  rotationSpeed: 50
+  rotationSpeed: 100
+  moveDistance: 0.5
+  moveDuration: 0.15
