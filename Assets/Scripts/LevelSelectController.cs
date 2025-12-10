@@ -5,6 +5,7 @@ using UnityEngine.UI;
 public class LevelSelectController : MonoBehaviour
 {
     public string nivel1 = "Level1Scene"; 
+    public string nivel2 = "Nivel-Misael";
     
     public Button btnNivel2;
     public Button btnNivel3;
@@ -19,6 +20,12 @@ public class LevelSelectController : MonoBehaviour
     {
         Debug.Log("¡Botón presionado! Intentando cargar: " + nivel1); 
         SceneManager.LoadScene(nivel1);
+    }
+
+    public void CargarNivel2()
+    {
+        Debug.Log("¡Botón presionado! Intentando cargar: " + nivel2); 
+        SceneManager.LoadScene(nivel2);
     }
     
     public void VolverAlInicio()
